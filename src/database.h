@@ -57,6 +57,14 @@ class Database : public EventEmitter {
     static int EIO_AfterPrepare(eio_req *req);
     static int EIO_Prepare(eio_req *req);
     static Handle<Value> Prepare(const Arguments& args);
+    
+    static int EIO_AfterEnableLoadExtension(eio_req *req);
+    static int EIO_EnableLoadExtension(eio_req *req);
+    static Handle<Value> EnableLoadExtension(const Arguments& args);
+    
+    static int EIO_AfterLoadExtension(eio_req *req);
+    static int EIO_LoadExtension(eio_req *req);
+    static Handle<Value> LoadExtension(const Arguments& args);
 
     // Return a pointer to the Sqlite handle pointer so that EIO_Open can
     // pass it to sqlite3_open which wants a pointer to an sqlite3 pointer. This
@@ -96,6 +104,19 @@ struct prepare_request {
   int affectedRows;
   const char* tail;
   char sql[1];
+};
+
+struct enable_load_extension_request {
+  Persistent<Function> cb;
+  Database *dbo;
+  int onoff;
+};
+
+struct load_extension_request {
+  Persistent<Function> cb;
+  Database *dbo;
+  char* error[1];
+  char filename[1];
 };
 
 #endif

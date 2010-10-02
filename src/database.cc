@@ -41,6 +41,10 @@ void Database::Init(v8::Handle<Object> target) {
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "prepare", Prepare);
   NODE_SET_PROTOTYPE_METHOD(constructor_template, "prepareAndStep", PrepareAndStep);
 
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "enableLoadExtension", EnableLoadExtension);
+  NODE_SET_PROTOTYPE_METHOD(constructor_template, "loadExtension", LoadExtension);
+
+
   target->Set(v8::String::NewSymbol("Database"),
           constructor_template->GetFunction());
 
@@ -500,6 +504,141 @@ Handle<Value> Database::Prepare(const Arguments& args) {
   prep_req->mode = mode;
 
   eio_custom(EIO_Prepare, EIO_PRI_DEFAULT, EIO_AfterPrepare, prep_req);
+
+  ev_ref(EV_DEFAULT_UC);
+  dbo->Ref();
+
+  return Undefined();
+}
+
+int Database::EIO_EnableLoadExtension(eio_req *req) {
+  struct enable_load_extension_request *enable_load_extension_req = 
+    (struct enable_load_extension_request *)(req->data);
+
+  sqlite3* db = enable_load_extension_req->dbo->db_;
+  
+  int rc = sqlite3_enable_load_extension(db, enable_load_extension_req->onoff);
+  req->result = rc;
+  
+  return 0;
+}
+
+int Database::EIO_AfterEnableLoadExtension(eio_req *req) {
+  ev_unref(EV_DEFAULT_UC);
+  
+  Local<Value> argv[1];
+  bool err = false;
+  
+  struct enable_load_extension_request *enable_load_extension_req = 
+    (struct enable_load_extension_request *)(req->data);
+  
+  TryCatch try_catch;
+
+  enable_load_extension_req->dbo->Unref();
+  enable_load_extension_req->cb->Call(Context::GetCurrent()->Global(), err ? 1 : 0, argv);
+
+  if (try_catch.HasCaught()) {
+    FatalException(try_catch);
+  }
+
+  enable_load_extension_req->cb.Dispose();
+  
+  free(enable_load_extension_req);
+
+  return 0;
+}
+
+Handle<Value> Database::EnableLoadExtension(const Arguments& args) {
+  REQ_INT_ARG(0, onoff);
+  REQ_FUN_ARG(1, cb);
+
+  Database* dbo = ObjectWrap::Unwrap<Database>(args.This());
+  
+  struct enable_load_extension_request *enable_load_extension_req = 
+    (struct enable_load_extension_request *) calloc(1, sizeof(struct enable_load_extension_request));
+      
+  if (!enable_load_extension_req) {
+    V8::LowMemoryNotification();
+    return ThrowException(Exception::Error(
+      String::New("Could not allocate enough memory")));
+  }
+  
+  enable_load_extension_req->cb = Persistent<Function>::New(cb);
+  enable_load_extension_req->dbo = dbo;
+  enable_load_extension_req->onoff = onoff;
+  
+  eio_custom(EIO_EnableLoadExtension, EIO_PRI_DEFAULT, EIO_AfterEnableLoadExtension, enable_load_extension_req);
+
+  ev_ref(EV_DEFAULT_UC);
+  dbo->Ref();
+
+  return Undefined();
+}
+
+int Database::EIO_AfterLoadExtension(eio_req *req) {
+  ev_unref(EV_DEFAULT_UC);
+  struct load_extension_request *load_extension_req = 
+    (struct load_extension_request *)(req->data);
+
+  Local<Value> argv[1];
+  bool err = false;
+  if (req->result) {
+    err = true;
+    argv[0] = Exception::Error(String::New(load_extension_req->error[0]));
+  }
+
+  TryCatch try_catch;
+
+  load_extension_req->dbo->Unref();
+  load_extension_req->cb->Call(Context::GetCurrent()->Global(), err ? 1 : 0, argv);
+
+  if (try_catch.HasCaught()) {
+    FatalException(try_catch);
+  }
+  
+  load_extension_req->cb.Dispose();
+
+  free(load_extension_req);
+
+  return 0;
+}
+
+int Database::EIO_LoadExtension(eio_req *req) {
+  struct load_extension_request *load_extension_req = 
+    (struct load_extension_request *)(req->data);
+
+  sqlite3* db = load_extension_req->dbo->db_;
+  
+  int rc = sqlite3_load_extension( db
+                          , load_extension_req->filename
+                          , 0
+                          , load_extension_req->error);
+
+  req->result = rc;
+
+  return 0;
+}
+
+Handle<Value> Database::LoadExtension(const Arguments& args) {
+  REQ_STR_ARG(0, filename);
+  REQ_FUN_ARG(1, cb);
+  
+  Database* dbo = ObjectWrap::Unwrap<Database>(args.This());
+  
+  struct load_extension_request *load_extension_req = (struct load_extension_request *)
+      calloc(1, sizeof(struct load_extension_request) + filename.length());
+
+  if (!load_extension_req) {
+    V8::LowMemoryNotification();
+    return ThrowException(Exception::Error(
+      String::New("Could not allocate enough memory")));
+  }
+
+  strcpy(load_extension_req->filename, *filename);
+  load_extension_req->cb = Persistent<Function>::New(cb);
+  load_extension_req->dbo = dbo;
+
+  eio_custom(EIO_LoadExtension, EIO_PRI_DEFAULT, EIO_AfterLoadExtension, load_extension_req);
 
   ev_ref(EV_DEFAULT_UC);
   dbo->Ref();

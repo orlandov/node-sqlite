@@ -36,6 +36,12 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
                   String::New("Argument " #I " must be a string")));    \
   String::Utf8Value VAR(args[I]->ToString());
 
+#define REQ_INT_ARG(I, VAR)                                             \
+  if (args.Length() <= (I) || !args[I]->IsInt32())                      \
+    return ThrowException(Exception::TypeError(                         \
+                  String::New("Argument " #I " must be an integer")));  \
+  int VAR = args[I]->Int32Value();
+
 #define REQ_FUN_ARG(I, VAR)                                             \
   if (args.Length() <= (I) || !args[I]->IsFunction())                   \
     return ThrowException(Exception::TypeError(                         \
