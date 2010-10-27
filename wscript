@@ -16,6 +16,7 @@ def configure(conf):
     if not conf.check(lib="sqlite3", libpath=['/usr/local/lib', '/opt/local/lib'], uselib_store="SQLITE3"):
       conf.fatal('Missing sqlite3');
   conf.env.append_value('LIBPATH_SQLITE3', '/opt/local/lib');
+  conf.env.append_value('CPPPATH_SQLITE3', '/opt/local/include');
 #   conf.check_cfg(package='profiler', args='--cflags --libs', uselib_store='SQLITE3')
 #   conf.env.append_value('LIBPATH_PROFILER', '/usr/local/lib')
 #   conf.env.append_value('LIB_PROFILER', 'profiler')
