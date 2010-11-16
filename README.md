@@ -120,6 +120,25 @@ Options:
 
 Load a sqlite extension.
 
+    var db = new sqlite.Database();
+
+    db.open('database.sqlite3', function (error) {
+      if (error) throw error; 
+
+      // load an extension called mylib
+      db.enableLoadExtension(1, function (error, statement) { 
+        if (error) throw error; 
+        db.loadExtension("/usr/local/lib/mylib.dylib", function (error) { 
+          if (error) throw error; 
+        });
+        db.execute("select * from sometable limit 10;", function (error, row) {
+          if (error) throw error;
+          console.log(row[0]);
+        });
+      });
+    });
+
+
 ## Statement Objects
 
 ### statement.bindArray(array, function (error) {})
