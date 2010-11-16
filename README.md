@@ -116,6 +116,10 @@ Options:
     the callback will contain an affectedRows member with the number of
     affected rows for the last step.
 
+### db.loadExtension(extension, function(error, statement){});
+
+Load a sqlite extension.
+
 ## Statement Objects
 
 ### statement.bindArray(array, function (error) {})
