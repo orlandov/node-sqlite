@@ -1,3 +1,4 @@
 build/
 .lock-wscript
 sqlite3_bindings.node
+deps/mpool-2.1.0/*
