@@ -40,6 +40,8 @@ def build(bld):
   obj.uselib = "MPOOL"
   obj.uselib_local = "sqlite3"
 
+  system("ln -s build/Release/sqlite3_bindings.node .")
+
 t = 'sqlite3_bindings.node'
 def shutdown():
   # HACK to get binding.node out of build directory.
