@@ -16,7 +16,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <v8.h>
 #include <node.h>
-#include <node_events.h>
+//#include <node_events.h>
 
 #include "sqlite3_bindings.h"
 #include "database.h"

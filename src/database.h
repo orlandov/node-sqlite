@@ -19,12 +19,13 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <v8.h>
 #include <node.h>
-#include <node_events.h>
-
+#include <node_object_wrap.h>
+#include "events.h"
 #include <sqlite3.h>
 
 using namespace v8;
 using namespace node;
+using namespace node_db;
 
 class Database : public EventEmitter {
   public:
@@ -42,20 +43,20 @@ class Database : public EventEmitter {
     static Handle<Value> New(const Arguments& args);
 
     static int EIO_AfterOpen(eio_req *req);
-    static int EIO_Open(eio_req *req);
+    static void EIO_Open(eio_req *req);
     static Handle<Value> Open(const Arguments& args);
 
     static int EIO_AfterClose(eio_req *req);
-    static int EIO_Close(eio_req *req);
+    static void EIO_Close(eio_req *req);
     static Handle<Value> Close(const Arguments& args);
 
 //     static Handle<Value> LastInsertRowid(const Arguments& args);
     static int EIO_AfterPrepareAndStep(eio_req *req);
-    static int EIO_PrepareAndStep(eio_req *req);
+    static void EIO_PrepareAndStep(eio_req *req);
     static Handle<Value> PrepareAndStep(const Arguments& args);
 
     static int EIO_AfterPrepare(eio_req *req);
-    static int EIO_Prepare(eio_req *req);
+    static void EIO_Prepare(eio_req *req);
     static Handle<Value> Prepare(const Arguments& args);
 
     // Return a pointer to the Sqlite handle pointer so that EIO_Open can

@@ -33,7 +33,6 @@ void Statement::Init(v8::Handle<Object> target) {
   Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
   constructor_template = Persistent<FunctionTemplate>::New(t);
-  constructor_template->Inherit(EventEmitter::constructor_template);
   constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
   constructor_template->SetClassName(String::NewSymbol("Statement"));
 
@@ -62,6 +61,7 @@ Handle<Value> Statement::New(const Arguments& args) {
 
   return args.This();
 }
+
 
 int Statement::EIO_AfterBindArray(eio_req *req) {
   ev_unref(EV_DEFAULT_UC);
@@ -106,7 +106,7 @@ int Statement::EIO_AfterBindArray(eio_req *req) {
   return 0;
 }
 
-int Statement::EIO_BindArray(eio_req *req) {
+void Statement::EIO_BindArray(eio_req *req) {
   struct bind_request *bind_req = (struct bind_request *)(req->data);
   Statement *sto = bind_req->sto;
   int rc(0);
@@ -132,7 +132,7 @@ int Statement::EIO_BindArray(eio_req *req) {
 
     if (!index) {
       req->result = SQLITE_MISMATCH;
-      return 0;
+      return;
     }
 
     int rc = 0;
@@ -157,10 +157,8 @@ int Statement::EIO_BindArray(eio_req *req) {
 
   if (rc) {
     req->result = rc;
-    return 0;
   }
 
-  return 0;
 }
 
 Handle<Value> Statement::BindObject(const Arguments& args) {
@@ -429,14 +427,12 @@ int Statement::EIO_AfterFinalize(eio_req *req) {
   return 0;
 }
 
-int Statement::EIO_Finalize(eio_req *req) {
+void Statement::EIO_Finalize(eio_req *req) {
   Statement *sto = (class Statement *)(req->data);
 
   assert(sto->stmt_);
   req->result = sqlite3_finalize(sto->stmt_);
   sto->stmt_ = NULL;
-
-  return 0;
 }
 
 Handle<Value> Statement::Finalize(const Arguments& args) {
@@ -581,7 +577,7 @@ void Statement::InitializeColumns(void) {
   }
 }
 
-int Statement::EIO_Step(eio_req *req) {
+void Statement::EIO_Step(eio_req *req) {
   Statement *sto = (class Statement *)(req->data);
   sqlite3_stmt *stmt = sto->stmt_;
   assert(stmt);
@@ -670,8 +666,6 @@ int Statement::EIO_Step(eio_req *req) {
     sto->error_ = true;
     sto->cells = NULL;
   }
-
-  return 0;
 }
 
 Handle<Value> Statement::Step(const Arguments& args) {
@@ -812,7 +806,7 @@ int Statement::EIO_AfterFetchAll(eio_req *req) {
   return 0;
 }
 
-int Statement::EIO_FetchAll(eio_req *req) {
+void Statement::EIO_FetchAll(eio_req *req) {
   struct fetchall_request *fetchall_req
     = (struct fetchall_request *)(req->data);
 
@@ -834,7 +828,7 @@ int Statement::EIO_FetchAll(eio_req *req) {
       req->result = -1;
       fetchall_req->rows = NULL;
       fetchall_req->error = (char *) mpool_strerror(ret);
-      return 0;
+      return;
     }
   }
   else {
@@ -942,13 +936,11 @@ int Statement::EIO_FetchAll(eio_req *req) {
       fetchall_req->error = (char *) mpool_strerror(ret);
     }
     req->result = -1;
-    return 0;
+    return;
   }
 
   req->result = 0;
   fetchall_req->rows = head;
-
-  return 0;
 }
 
 Handle<Value> Statement::FetchAll(const Arguments& args) {
