@@ -1,9 +1,9 @@
 var fs     = require("fs"),
-    sys    = require("sys"),
+    util = require('util'),
     sqlite = require("../sqlite");
 
-var puts = sys.puts;
-var inspect = sys.inspect;
+var puts = util.puts;
+var inspect = util.inspect;
 
 var db = new sqlite.Database();
 
