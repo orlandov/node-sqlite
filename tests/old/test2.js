@@ -1,11 +1,11 @@
 var fs = require("fs");
-var sys = require("sys");
+var util = require('util');
 var assert = require("assert");
 
 var sqlite = require("../sqlite3_bindings");
 
-var puts = sys.puts;
-var inspect = sys.inspect;
+var puts = util.puts;
+var inspect = util.inspect;
 
 var db = new sqlite.Database();
 
