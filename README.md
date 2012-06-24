@@ -10,7 +10,7 @@ currently made.
 
 ## High-level Driver
 
-    var sys    = require('sys'),
+    var util = require('util'),
         sqlite = require('sqlite');
 
     var db = new sqlite.Database();
