@@ -39,6 +39,10 @@ def build(bld):
   obj.source = "src/sqlite3_bindings.cc src/database.cc src/statement.cc"
   obj.uselib = "MPOOL"
   obj.uselib_local = "sqlite3"
+  obj.includes = """
+    src/
+    deps/sqlite
+  """
 
 t = 'sqlite3_bindings.node'
 def shutdown():
