@@ -20,7 +20,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <v8.h>
 #include <node.h>
 #include <node_events.h>
-#include <sqlite3.h>
+#include "../deps/sqlite-amalgamation-3070500/sqlite3.h"
 #include <stdlib.h>
 
 extern "C" {

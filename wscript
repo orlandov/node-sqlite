@@ -6,6 +6,7 @@ from os.path import exists, abspath
 srcdir = "."
 blddir = "build"
 VERSION = "0.0.1"
+SQLITE = "sqlite-amalgamation-3070500"
 
 def set_options(opt):
   opt.tool_options("compiler_cxx")
@@ -20,17 +21,17 @@ def configure(conf):
   conf.env.append_value("LIB_MPOOL",     "mpool")
   conf.env.append_value("CPPPATH_MPOOL", abspath("./deps/mpool-2.1.0/"))
 
-  conf.env.append_value('LIBPATH_SQLITE', abspath('build/default/deps/sqlite/'))
+  conf.env.append_value('LIBPATH_SQLITE', abspath('build/default/deps/'+SQLITE))
   conf.env.append_value('STATICLIB_SQLITE', 'sqlite3-bundled')
-  conf.env.append_value('CPATH_SQLITE', abspath('./deps/sqlite/'))
+  conf.env.append_value('CPATH_SQLITE', abspath('./deps/'+SQLITE))
 
 def build(bld):
   system("cd deps/mpool-2.1.0/; make");
 
   sqlite = bld.new_task_gen('cc', 'staticlib')
   sqlite.ccflags = ["-g", "-fPIC", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE", "-Wall"]
-  sqlite.source = "deps/sqlite/sqlite3.c"
-  sqlite.target = "deps/sqlite/sqlite3-bundled"
+  sqlite.source = '/'.join(['deps', SQLITE, 'sqlite3.c'])
+  sqlite.target = '/'.join(['deps', SQLITE, 'sqlite3-bundled'])
   sqlite.name = "sqlite3"
 
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
